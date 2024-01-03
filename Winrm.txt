@@ -1,0 +1,130 @@
+# views.py
+from rest_framework import generics
+from .models import Rule
+from .serializers import RuleSerializer
+from django.contrib.auth.models import User
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate, login
+import requests
+from django.http import JsonResponse
+
+
+class RuleListByCategory(generics.ListAPIView):
+    serializer_class = RuleSerializer
+
+    def get_queryset(self):
+        category_name = self.kwargs['category_name']
+        return Rule.objects.filter(category__name=category_name)
+
+class RuleList(generics.ListAPIView):
+    queryset = Rule.objects.all()
+    serializer_class = RuleSerializer
+
+    
+
+import requests
+from requests.auth import HTTPBasicAuth
+from winrm.protocol import Protocol
+from paramiko import SSHClient, AutoAddPolicy, SSHException
+from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import viewsets
+from requests.exceptions import HTTPError, RequestException
+from winrm.protocol import Protocol
+from requests.exceptions import HTTPError, RequestException
+from base64 import b64encode
+import json
+
+def install_wazuh_agent(server):
+    ip_address = server['ip_address']
+    ssh_username = server['ssh_username']
+    ssh_password = server['ssh_password']
+    os_type = server['os_type']
+   
+    try:
+        if os_type == 'Windows':
+            # Use WinRM for Windows servers
+            winrm_url = f"http://{ip_address}:5985/wsman"
+            winrm_username = ssh_username
+            winrm_password = ssh_password
+            
+            # Attempt to open the WinRM shell
+            session = Protocol(
+                endpoint=winrm_url,
+                transport='ntlm',
+                username=winrm_username,
+                password=winrm_password,
+                server_cert_validation='ignore'
+            ).open_shell()
+            print("Shell is open")
+            # PowerShell script to install Wazuh agent on Windows
+            wazuh_script = r"""
+                    Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.5.4-1.msi -OutFile ${env:temp}\wazuh-agent.msi;
+                    msiexec.exe /i ${env:temp}\wazuh-agent.msi /q WAZUH_MANAGER='172.16.1.61' WAZUH_REGISTRATION_SERVER='172.16.1.61'
+            """
+
+            encoded_ps = b64encode(wazuh_script.encode('utf-16le')).decode('ascii')
+            print(encoded_ps)
+            # Run the PowerShell command
+            command_id = session.run_command('wazuh_script', ['-EncodedCommand', encoded_ps])
+
+            # Wait for the command to finish
+            std_out, std_err, status_code = session.get_command_output(command_id)
+            
+            # Close the WinRM session
+            session.cleanup_command(command_id)
+            session.close_shell()
+
+            if status_code == 0:
+                return True, f"Command executed successfully. Output: {std_out}"
+            else:
+                return False, f"Command failed. Error: {std_err}"
+
+        elif os_type == 'Linux':
+            # For Linux servers, use Paramiko
+            ssh_client = SSHClient()
+            ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+
+            # ... (your code for Linux servers)
+
+            return True, "SSH session established successfully on Linux."
+
+        else:
+            # For other operating systems, use Paramiko
+            ssh_client = SSHClient()
+            ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+
+            # ... (your code for other OS)
+
+            return True, "SSH session established successfully on other OS."
+
+    except HTTPError as e:
+        return False, f"HTTP Error: {str(e)}"
+    
+    except RequestException as e:
+        return False, f"Request Error: {str(e)}"
+
+    except SSHException as e:
+        return False, f"SSH Error: {str(e)}"
+
+    except Exception as e:
+        return False, str(e)
+
+class OnboardViewSet(viewsets.ModelViewSet):
+
+    def create(self, request):
+        if request.method == 'POST':
+            server = request.data
+
+            try:
+                success, output = install_wazuh_agent(server)
+                if success:
+                    return Response({'success': success, 'output': output})
+                else:
+                    return Response({'success': success, 'error': output}, status=400)
+            except Exception as e:
+                return Response({'success': False, 'error': str(e)}, status=500)
+
+        return Response({'Methods': 'Not POST'})
