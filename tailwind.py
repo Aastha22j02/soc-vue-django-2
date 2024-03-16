@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 import requests
 from django.http import JsonResponse
-
+from paramiko import SSHClient, AutoAddPolicy, SSHException
 
 class RuleListByCategory(generics.ListAPIView):
     serializer_class = RuleSerializer
@@ -22,68 +22,90 @@ class RuleList(generics.ListAPIView):
     queryset = Rule.objects.all()
     serializer_class = RuleSerializer
 
-    
-
+# from rest_framework import viewsets
+# from rest_framework.response import Response
+# from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from paramiko import SSHClient, AutoAddPolicy, SSHException
-# from .models import Server
-# from .serializers import ServerSerializer
-
+from paramiko import SSHClient, AutoAddPolicy, SSHException, RSAKey
+import io
 
 def install_wazuh_agent(server):
     ip_address = server['ip_address']
     ssh_username = server['ssh_username']
-    ssh_password = server['ssh_password']
+    # ssh_password = server['ssh_password']
+    # private_key_path = server['/home/ubuntu/.ssh/id_rsa']  # Add this line to get private key path  "/home/ubuntu/.ssh/id_rsa"
+    # private_key_str = server['private_key']  # Private key as a string
+
     os_type = server['os_type']
-   
-    try:  
+
+    try:
         ssh_client = SSHClient()
         ssh_client.set_missing_host_key_policy(AutoAddPolicy())
 
-        print(ip_address)
-        # Connect to the remote server
-        ssh_client.connect(
-            ip_address,
-            username=ssh_username,
-            password=ssh_password,
-        )
+        # Load the private key
+        # private_key = RSAKey(filename=private_key_path)
 
-        print(os_type)
-        # Define the Wazuh agent installation script based on the server's OS type
-        if os_type == 'Ubuntu':          
+        
+        # Check the OS type and set authentication method accordingly
+
+        if os_type == 'Ubuntu':
+            # Ubuntu authentication: password
+            ssh_password = server['ssh_password']
+            ssh_client.connect(
+                ip_address,
+                username=ssh_username,
+                password=ssh_password,
+            )
+            # Ubuntu installation script
             wazuh_script = (
                 "curl -so wazuh-agent.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.5.2-1_amd64.deb && "
-                # f"sudo dpkg -i ./wazuh-agent.deb && "
                 f"sudo WAZUH_MANAGER='172.16.1.64' WAZUH_AGENT_GROUP='default' dpkg -i ./wazuh-agent.deb &&"
-                f"sudo systemctl start wazuh-agent"  )
-           
-        elif os_type == 'CentOS':
-            wazuh_script = (
-                "curl -so wazuh-agent.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.2-1.x86_64.rpm && "              
-                f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' rpm -i ./wazuh-agent.rpm &&"
-                f"sudo systemctl start wazuh-agent"    )
-                
-        elif os_type == 'Redhat':
-            wazuh_script = (
-                "sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' &&"
-                f"yum install -y https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.4-1.x86_64.rpm"              
-                f"sudo systemctl start wazuh-agent "
+                f"sudo systemctl start wazuh-agent"
             )
-        elif os_type == 'Fedora':
+        elif os_type in ['CentOS', 'Redhat']:
+            # CentOS/RHEL authentication: private key
+            private_key_str = server['private_key']
+            private_key = RSAKey(file_obj=io.StringIO(private_key_str))
+            
+            ssh_client.connect(
+                ip_address,
+                username=ssh_username,
+                pkey=private_key,
+            )
+            # CentOS/RHEL installation script
             wazuh_script = (
-                "curl -so wazuh-agent.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.2-1.x86_64.rpm && "              
-                f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' rpm -i ./wazuh-agent.rpm &&"
-                f"sudo systemctl start wazuh-agent "
+                "touch demo.txt && "
+                "sudo rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH && "
+                "echo -e '[wazuh]\n"
+                "name=Wazuh\n"
+                "enabled=1\n"
+                f"baseurl=https://packages.wazuh.com/4.x/yum/\n"
+                "gpgcheck=1\n"
+                "gpgkey=https://packages.wazuh.com/key/GPG-KEY-WAZUH' | sudo tee /etc/yum.repos.d/wazuh.repo && "
+                "sudo yum install -y wazuh-agent && "
+                f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' systemctl enable wazuh-agent && "
+                f"sudo systemctl start wazuh-agent"
             )
 
-        elif os_type == 'Windows':
+        elif os_type in ['CentOS', 'Redhat']:
+            # CentOS/RHEL authentication: private key
+            private_key_str = server['private_key']
+            private_key = RSAKey(file_obj=io.StringIO(private_key_str))
+            ssh_client.connect(
+                ip_address,
+                username=ssh_username,
+                pkey=private_key,
+            )
+            # CentOS/RHEL installation script
             wazuh_script = (
-                f"Invoke-WebRequest -Uri 'https://packages.wazuh.com/4.x/windows/wazuh-agent-4.5.2-1.msi' -OutFile 'wazuh-agent.msi'; "
-                f"Start-Process msiexec.exe -ArgumentList '/i', 'wazuh-agent.msi', '/qn', '/quiet', '/norestart', 'WAZUH_MANAGER='172.16.1.61', 'WAZUH_AGENT_GROUP=default' -Wait &&"
-                f"NET START Wazuh")
-            
+                "curl -so wazuh-agent.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.2-1.x86_64.rpm && "
+                f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' rpm -i ./wazuh-agent.rpm &&"
+                f"sudo systemctl start wazuh-agent"
+            )   
+
+
         else:
             raise ValueError("Unsupported OS type.")
 
@@ -92,30 +114,179 @@ def install_wazuh_agent(server):
 
         output = "\n".join(stdout.read().decode('utf-8').splitlines())
 
-        ssh_client.close()
-
         return True, output
 
     except SSHException as e:
         return False, f"SSH Error: {str(e)}"
-
     except Exception as e:
         return False, str(e)
+    finally:
+        ssh_client.close()
+
+        
+
         
 
 
-class OnboardViewSet(viewsets.ModelViewSet):
+      
 
+    #     if os_type == 'Ubuntu':
+    #         # Ubuntu installation script (unchanged)
+    #         wazuh_script = (
+    #             "curl -so wazuh-agent.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.5.2-1_amd64.deb && "
+    #             f"sudo WAZUH_MANAGER='172.16.1.64' WAZUH_AGENT_GROUP='default' dpkg -i ./wazuh-agent.deb &&"
+    #             f"sudo systemctl start wazuh-agent"
+    #         )
+    #     elif os_type == 'CentOS':
+    #         # CentOS installation script (unchanged)
+    #         wazuh_script = (
+    #             "curl -so wazuh-agent.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.2-1.x86_64.rpm && "
+    #             f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' rpm -i ./wazuh-agent.rpm &&"
+    #             f"sudo systemctl start wazuh-agent"
+    #         )
+    #     elif os_type == 'Redhat':
+
+    #         # RHEL installation script
+    #         wazuh_script = (
+    #             "touch demo.txt && "
+    #             "sudo rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH && "
+    #             "echo -e '[wazuh]\n"
+    #             "name=Wazuh\n"
+    #             "enabled=1\n"
+    #             f"baseurl=https://packages.wazuh.com/4.x/yum/\n"
+    #             "gpgcheck=1\n"
+    #             "gpgkey=https://packages.wazuh.com/key/GPG-KEY-WAZUH' | sudo tee /etc/yum.repos.d/wazuh.repo && "
+    #             "sudo yum install -y wazuh-agent && "
+    #             f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' systemctl enable wazuh-agent && "
+    #             f"sudo systemctl start wazuh-agent"
+    #         )
+    #     elif os_type == 'Fedora':
+    #         # Fedora installation script (unchanged)
+    #         wazuh_script = (
+    #             "curl -so wazuh-agent.rpm https://packages.wazuh.com/4.x/yum/wazuh-agent-4.5.2-1.x86_64.rpm && "
+    #             f"sudo WAZUH_MANAGER='172.16.1.61' WAZUH_AGENT_GROUP='default' rpm -i ./wazuh-agent.rpm &&"
+    #             f"sudo systemctl start wazuh-agent"
+    #         )
+    #     else:
+    #         raise ValueError("Unsupported OS type.")
+
+    #     # Execute the installation script
+    #     stdin, stdout, stderr = ssh_client.exec_command(wazuh_script)
+
+    #     output = "\n".join(stdout.read().decode('utf-8').splitlines())
+
+    #     ssh_client.close()
+
+    #     return True, output
+
+    # except SSHException as e:
+    #     return False, f"SSH Error: {str(e)}"
+
+    # except Exception as e:
+    #     return False, str(e)
+
+        
+ 
+
+# In your OnboardViewSet, you can now handle the authentication method based on OS type
+class OnboardViewSet(viewsets.ModelViewSet):
     def create(self, request):
         if request.method == 'POST':
-            server = request.data
-
             try:
+                # Extract necessary data from the request
+                ip_address = request.data.get('ip_address')
+                ssh_username = request.data.get('ssh_username')
+                os_type = request.data.get('os_type')
+
+                # Prepare the server dictionary
+                server = {
+                    'ip_address': ip_address,
+                    'ssh_username': ssh_username,
+                    'os_type': os_type,
+                }
+
+                # Check OS type and set authentication details
+                if os_type == 'Ubuntu':
+                    server['ssh_password'] = request.data.get('ssh_password')
+                elif os_type in ['CentOS', 'Redhat']:
+                    server['private_key'] = request.data.get('private_key')
+                else:
+                    return Response({'error': 'Unsupported OS type'}, status=400)
+
                 success, output = install_wazuh_agent(server)
+
                 if success:
                     return Response({'success': success, 'output': output})
                 else:
                     return Response({'success': success, 'error': output}, status=400)
             except Exception as e:
-                return Response({'success': False, 'error': str(e)}, status=500)    
-        return Response({'Methods': Notpost})          
+                return Response({'success': False, 'error': str(e)}, status=500)
+        return Response({'error': 'Invalid request method'}, status=405)       
+
+
+  
+ 
+############################### Onboarding Windows Machine #############
+ 
+ 
+from winrm.protocol import Protocol
+from requests.exceptions import HTTPError, RequestException
+from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import viewsets
+import time
+ 
+import winrm
+ 
+def install_agent_on_windows(winrm_url, winrm_username, winrm_password):
+    try:
+        session = winrm.Session(winrm_url, auth=(winrm_username, winrm_password), transport='ntlm')
+        print("Session created successfully!")
+ 
+        try:
+           
+            install_command = (
+                'Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.5.4-1.msi -OutFile wazuh-agent.msi; msiexec.exe /i wazuh-agent.msi /q WAZUH_MANAGER=\'172.16.1.61\' WAZUH_REGISTRATION_SERVER=\'172.16.1.61\';  '
+            )
+            start_service = (
+                'NET START Wazuh '
+            )
+ 
+            result_install = session.run_cmd('powershell', [install_command])
+            time.sleep(10)
+            result_install = session.run_cmd('powershell', [start_service])
+            print(result_install)
+ 
+            if result_install.status_code == 0:
+                return True, "Agent installed successfully"
+            else:
+                return False, f"Failed to install agent. Exit code: {result_install.status_code}, Output: {result_install.std_err}"
+ 
+        except Exception as install_error:
+            return False, f"Error installing package: {str(install_error)}"
+ 
+    except Exception as session_error:
+        return False, f"Error creating session: {str(session_error)}"
+ 
+class OnboardWindow(viewsets.ModelViewSet):
+ 
+    def create(self, request):
+        if request.method == 'POST':
+            server = request.data
+ 
+            try:
+                success, output = install_agent_on_windows(
+                    server['ip_address'],
+                    server['ssh_username'],
+                    server['ssh_password'],
+                )
+ 
+                if success:
+                    return Response({'success': True, 'message': output}, status=200)
+                else:
+                    return Response({'success': False, 'error': output}, status=400)
+            except Exception as e:
+                return Response({'success': False, 'error': str(e)}, status=500)
+ 
+        return Response({'Methods': 'Not POST'}, status=405)
+ 

@@ -1,6 +1,6 @@
 # urls.py
 from django.urls import path
-from .views import RuleListByCategory, RuleList, OnboardViewSet
+from .views import RuleListByCategory, RuleList, OnboardViewSet,OnboardWindow
 from django.contrib import admin
 from django.urls import path,include
 
@@ -12,6 +12,7 @@ router = routers.DefaultRouter()
 # router.register(r'users', UserAuthViewSet, basename="register")
 
 router.register(r'onboard', OnboardViewSet, basename='onboard')
+router.register(r'onboardWindow', OnboardWindow, basename='onboardWindow')
 
 urlpatterns = [
     # ... your other patterns

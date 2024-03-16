@@ -1,94 +1,128 @@
 <template>
-  <section class="bg-gradient-to-r from-green-500 via-purple-500 to-pink-500 dark:bg-gray-900">
-    <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-            <img class="w-8 h-8 mr-2" src="../assets/static/DURGA.png" alt="logo">
-          DURGA    
-        </a>
-        <div class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-            <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-                <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-                    Sign in to your account
-                </h1>
-                <div class="space-y-4 md:space-y-6" action="#">
-                    <div>
-                        <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your username</label>
-                        <input type="username" v-model="username" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="username" required="">
-                    </div>
-                    <div>
-                        <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                        <input type="password"  v-model="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required="">
-                    </div>
-                    <div class="flex items-center justify-between">                  
-                        <a href="#" class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
-                    </div>
-                    <button type="submit" @click="login" 
-                    class="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Login</button>                   
-                  </div>
-            </div>
+  <div style="" class="bg-blue-100 overflow-x-hidden lg:overflow-x-auto lg:overflow-hidden flex items-center justify-center lg:h-screen">
+    <!-- remove flex classes from body tag to remove the horizontal and vertical position -->
+ 
+    <div class="login-container container w-full lg:w-4/5 lg:bg-white h-screen lg:h-screen-75 lg:border border-gray-300 rounded-lg flex flex-wrap lg:flex-nowrap flex-col lg:flex-row justify-between group">
+ 
+      <!-- product Side -->
+      <div class="w-full bg-blue-400  lg:w-1/2 h-28 lg:h-full mt-32 lg:mt-0 lg:bg-theme-yellow-dark flex relative order-2 lg:order-1">
+ 
+        <div class="text-center hidden lg:flex items-center justify-start h-full w-full select-none">
+          <!-- <span class="transform block whitespace-nowrap h-full -rotate-90 text-[55px] 2xl:text-[70px] font-black uppercase text-yellow-300 opacity-0 transition-all group-hover:opacity-100 ml-10 2xl:ml-12 group-hover:-ml-20 2xl:group-hover:ml-26 lg:group-hover:ml-20 duration-1000 lg:duration-700 ease-in-out">Defense Utility for Risk Governance and Awareness</span> -->
         </div>
+        <!-- product text -->
+ 
+        <!-- <div class="product absolute right-0 bottom-0 flex items-center lg:justify-center w-full opacity-50 lg:opacity-100">
+         <img src="../assets/static/u.png" alt="product" class="-mb-5 lg:mb-0 -ml-12 lg:ml-0 product h-[500px] xl:h-[700px] 2xl:h-[900px] w-auto object-cover ">
+        
+        </div> -->
+        <div class="product absolute right-0 flex bottom-[250px]  mr-[95px]  items-center lg:justify-center w-full opacity-50 lg:opacity-100">
+  <img src="../assets/static/rl.png" alt="product" class="mx-auto mb-8 lg:mb-0 ml-4 lg:ml-auto mt-8 lg:mt-0 h-[300px] xl:h-[400px] 2xl:h-[500px] w-auto object-cover">
+</div>
+
+ 
+        <div class="hidden lg:block w-1/3 bg-white ml-auto"></div>
+      </div>
+      <!-- Product Side End-->
+ 
+      <!-- Login Form -->
+      <div class="w-full lg:w-1/2 order-1 lg:order-2">
+        <div class="form-wrapper flex items-center lg:h-full px-10 relative z-10 pt-16 lg:pt-0">
+          <div class="w-full space-y-5">
+ 
+            <div class="form-caption flex items-end justify-center text-center space-x-3 mb-20">
+              <img class="w-10 h-10 mr-2" src="../assets/static/DURGA.png" alt="logo">
+              <span class="text-3xl font-semibold text-gray-700">DURGA</span>
+              
+            </div>
+            <!-- form caption -->
+ 
+            <div class="form-element">
+              <label class="space-y-2 w-full lg:w-4/5 block mx-auto">
+                <span class="block text-lg text-gray-800 tracking-wide">Username</span>
+                <span class="block">
+                  <input v-model="username" type="text" class="bg-yellow-100 lg:bg-white border lg:border-2 border-gray-400 lg:border-gray-200 w-full p-3 focus:outline-none active:outline-none focus:border-gray-400 active:border-gray-400">
+                </span>
+              </label>
+            </div>
+            <!-- form element -->
+ 
+            <div class="form-element">
+              <label class="space-y-2 w-full lg:w-4/5 block mx-auto">
+                <span class="block text-lg text-gray-800 tracking-wide">Password</span>
+                <span class="block">
+                  <input v-model="password" type="password" @keyup.enter=" login" class="bg-yellow-100 lg:bg-white border lg:border-2 border-gray-400 lg:border-gray-200 w-full p-3 focus:outline-none active:outline-none focus:border-gray-400 active:border-gray-400">
+                </span>
+              </label>
+            </div>
+ 
+            <!-- form element -->
+            <div class="form-element">
+            <span class="w-full lg:w-4/5 block mx-auto ">
+              <button @click="login"  class="cursor-pointer border-2 rounded-md border-blue-200 w-full p-3 bg-blue-500 focus:outline-none active:outline-none focus:bg-theme-yellow active:bg-theme-yellow hover:bg-theme-yellow transition-all">
+            Login </button>
+            </span>
+          </div>
+            <!-- form element -->
+ 
+          </div>
+        </div>
+        <!-- form wrapper -->
+      </div>
     </div>
-  </section>
+  </div>
 </template>
-
+ 
 <script>
-import axios from 'axios'
-
+import axios from 'axios';
+import { API_ENDPOINT } from '@/../apiconfig.js';
 
 export default {
- 
   data() {
     return {
-      tab: 'login',
-      email: null,
-      username: null,
-      password: null,
+      username: '',
+      password: '',
+      rememberMe: false,
       success: null,
       userdata: [],
-     
-    }
-
+      apiUrl: API_ENDPOINT,  
+      };
   },
-  // computed:{
-  //   ...mapWritableState(userModelstore, ['user_id'])
-  // },
+
+ 
 
   methods: {
     login() {
       const formData = {
         username: this.username,
-        password: this.password
-      }
+        password: this.password,
+      };
+
       axios
-        .post('http://127.0.0.1:8000/api/v1/login/', formData)
+        .post(`${this.apiUrl}/api/v1/login/`, formData) 
+        // ${this.apiUrl}/api/v1/login/
         .then((response) => {
-          console.log(response.data)
+          this.success = 'Successfully Logged In!';
 
-          this.success = 'Successfull LoggedIn!'
+          const token = response.data.token;
+          this.userdata = response.data.user_data;
+          const user_id = this.userdata.id;
+          const username = this.userdata.username;
 
-          const token = response.data.token
-          // console.log(token)
+          sessionStorage.setItem('user_id', user_id);
+          sessionStorage.setItem('username', username);
 
-          this.userdata = response.data.user_data
-          // console.log(this.userdata)
-          const user_id = this.userdata.id
-          const username = this.userdata.username
-
-          // localStorage.setItem('token',token );
-          sessionStorage.setItem('user_id',user_id );
-          sessionStorage.setItem('username',username );
-
-          
-          // this.setAuthToken(token);
-          this.$router.push('/home')
-
+          this.$router.push('/home');
         })
         .catch((error) => {
-          console.error(error.response.data.message)
+          console.error(error.response.data.message);
           // Handle login error
-        })
+        });
     },
-  
-  }
-}
+  },
+};
 </script>
+ 
+<style scoped>
+/* Add your styles here */
+</style>

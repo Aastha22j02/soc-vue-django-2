@@ -1,19 +1,29 @@
 <template>
-  <div v-show="!loading" class="spinner">
-    <div class="bg- opacity-60% absolute right-1/2 bottom-1/2 transform translate-x-1/2 translate-y-1/2">
-      <div class="p-4 bg-gradient-to-r animate-spin from-green-500 via-purple-500 rounded-full">
+ 
+  <navBar/>
+  <div class="flex fixed mt-16">
+      <!-- leftsider bar -->
+      <leftSidebar />
+ 
+      <!-- center panel -->
+      <div :class="['h-screen pb-5 flex-1 flex flex-col overflow-hidden', isOpen ? 'w-[1625px]' : 'w-[1830px]']">           
+ 
+        <div class="flex-1 overflow-x-hidden overflow-y-auto p-7">
+    <div v-show="!loading" class="spinner">
+    <div class=" opacity-60% absolute right-1/2 bottom-1/2 transform translate-x-1/2 translate-y-1/2">
+      <div class="p-4 bg-gradient-to-r animate-spin from-blue-500 via-purple-500 rounded-full">
         <div class="bg-white rounded-full">
           <div class="w-12 h-12   rounded-full"></div>
         </div>
       </div>
     </div>
   </div>
-
-<div v-show="!loading">
-    <div  class="p-4 w-full">
+ 
+<div v-show="!loading" >
+    <div  class="p-4 ">
       <div class="flex flex-col mt-8  p-10">
         <div class=" ">
-          <div class="flex items-center px-5 py-6 bg-gray-100 rounded-md shadow-sm">
+          <div class="flex items-center px-5 py-6 bg-gray-200 rounded-md shadow-sm">
             <div class="p-3 bg-blue-500 bg-opacity-75 rounded-full">
               <svg class="w-8 h-8" fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink" width="64px" height="64px" viewBox="-54.76 -54.76 657.16 657.16"
@@ -31,25 +41,27 @@
                 </g>
               </svg>
             </div>
-
-            <div class="mx-5">
+ 
+            <div class="mx-5 w-full">
               <h4 class="text-2xl font-semibold text-gray-700"> {{ rules.length }} </h4>
-              <div class="text-gray-500">Total Number of Rules</div> 
+              <div class="text-gray-500">Total Number of Rules
+                {{ isOpen }}
+              </div>
             </div>
-
+ 
             <button v-if="selectedRules.length > 0" @click.prevent="triggerPipeline"
-              class="ml-auto   inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800">
+              class="inline-flex ml-auto items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800">
               <span class="w-28  px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
               Apply
               </span>
             </button>
-
+ 
           
           </div>
         </div>
       </div>
     </div>
-
+ 
     <div  class="p-4 w-full ">
       <div class="flex flex-col ">
         <div class="py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -62,19 +74,19 @@
                       <label for="checkbox-all-search" class="sr-only">checkbox</label>
                     </div>
                   </th>
-
+ 
                   <th
                     class="px-6 py-3 text-md font-medium leading-4 tracking-wider text-left text-gray-500 uppercase border-b border-gray-200 bg-gray-50">
                     Rule Name
                   </th>
-
+ 
                   <th
                     class="px-6 py-3 text-md font-medium leading-4 tracking-wider text-left text-gray-500 uppercase border-b border-gray-200 bg-gray-50">
                     Rule Description
                   </th>
                 </tr>
               </thead>
-
+ 
               <tbody class="bg-white">
                 <tr v-for="rule in rules" :key="rule.name">
                   <td class="w-4 p-4">
@@ -103,14 +115,14 @@
         </div>
       </div>
     </div>
-
-
+ 
+ 
   <!-- Modal -->
-  <div id="popup-modal" v-show="isModalVisible" tabindex="-1" class="fixed top-0 left-0 right-0 bottom-0 
+  <div id="popup-modal" v-show="isModalVisible" tabindex="-1" class="fixed top-0 left-0 right-0 bottom-0
     z-50 flex  justify-center  p-4 overflow-x-hidden overflow-y-auto md:inset-0">
     <div class="relative w-[700px] ">
       <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-
+ 
         <button @click="toggleModel" type="button"
           class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
           <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -119,7 +131,7 @@
           </svg>
           <span class="sr-only">Close modal</span>
         </button>
-
+ 
         <div class="p-6 ">
           <h3 class="mb-5 text-lg font-normal text-black dark:text-gray-400">
             You are going to apply these rules </h3>
@@ -128,16 +140,16 @@
               <div class="text-gray-400 dark:text-white p-3">
                 {{ selectedRules.name }}
               </div>
-
+ 
             </div>
           </div>
           <div class="mt-5">
            <button @click.prevent="triggerPipeline" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800">
             <span class="w-24 relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-            Proceed 
+            Proceed
             </span>
             </button>
-
+ 
             <button @click="toggleModel" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800">
             <span class="relative w-24   px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
             Cancle
@@ -149,46 +161,62 @@
     </div>
   </div>
 </div>
+        </div>
+    </div>
+  </div>
+ 
 </template>
-
+ 
 <script>
-import leftSidebar from './leftSidebar.vue';
+import leftSidebar from '@/components/leftSidebar.vue';
+import navBar from '@/components/navBar.vue';
+ 
+ 
 import axios from "axios";
 import "jquery/dist/jquery.min.js";
 import "datatables.net-dt/js/dataTables.dataTables";
 import "datatables.net-dt/css/jquery.dataTables.min.css";
+ 
+import { useSidebarStore } from '@/stores/sidebar';
+import { API_ENDPOINT } from '@/../apiconfig.js';
+
 
 export default {
   components: {
-    leftSidebar,
+    leftSidebar, navBar
   },
   data(){
     return{
-      loading: true
-    }
-  },
-  mounted() {
-    axios.get("http://127.0.0.1:8000/api/v3/rules/")
-      .then((response) => {
-        this.rules = response.data;
-        this.loading = false
-        this.initializeDataTable();
-      });
-  },
-  data: function () {
-    return {
+      loading: true,
       isModalVisible: false,
       rules: [],
       selectedRules: [],
-    };
+      apiUrl: API_ENDPOINT,  
+
+    }
   },
+  computed:{
+    isOpen() {
+            return useSidebarStore().open;
+        },
+  },
+  mounted() {
+    axios.get(`${this.apiUrl}/api/v3/rules/`)
+      .then((response) => {
+        this.rules = response.data;
+       
+        this.initializeDataTable();
+        this.loading = false
+      });
+  },
+  
   methods: {
     toggleModel() {
       this.isModalVisible = !this.isModalVisible
     },
-
+ 
     triggerPipeline() {
-
+ 
       const data = {
         selectedRules: this.selectedRules,
         SelectedServer: this.SelectedServer,
@@ -196,20 +224,20 @@ export default {
       console.log(data.selectedRules);
       this.$router.push("/result");
       axios
-        .post("http://127.0.0.1:8000/api/v2/trigger/", data)
+        .post(`${this.apiUrl}/api/v2/trigger/`, data)
         .then((response) => {
           console.log("API response:", response.data);
-
+ 
         })
         .catch((error) => {
           console.error("API error:", error);
-
+ 
         })
         .finally(() => {
           this.toggleModal();
         });
     },
-
+ 
     initializeDataTable() {
       $(document).ready(function () {
         $("#datatable").DataTable();
@@ -218,9 +246,8 @@ export default {
   },
 };
 </script>
-
+ 
   
 <style>.dataTables_wrapper .dataTables_length select {
   width: 55px;
 }</style>
-      
